@@ -1,0 +1,23 @@
+{
+  "name": "CryptoPeeps",
+  "version": "1.0.0",
+  "description": "CryptoPeeps is an original pop art NFT collection powered by the Cardano blockchain. Each CryptoPeep is hand-crafted and one-of-a-kind. The artwork source code is stored directly on-chain, guaranteeing permanence and accessibility. The artwork was created by digital artist Benzega.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CryptoPeeps/CryptoPeeps.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CryptoPeeps/CryptoPeeps/issues"
+  },
+  "homepage": "https://github.com/CryptoPeeps/CryptoPeeps#readme",
+  "devDependencies": {
+    "glob": "^7.1.7"
+  }
+}
