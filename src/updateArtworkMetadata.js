@@ -100,16 +100,72 @@ const updateArtworkMetadata = (
     });
 }
 
+const updateArtworkMetadataProperty = (
+    species,
+    variant,
+    opts = {
+        test: true,
+        range: [1, 1],
+    }
+) => {
+
+    const dir = __dirname + `/../collections/${species}/${variant}`;
+
+    let arr = fs.readdirSync(dir)
+        .filter(aN => Number.isInteger(parseInt(aN)))
+        .filter(aN => parseInt(aN))
+        .sort((a, b) => a - b);
+
+    if (opts.test) {
+        arr = arr.filter(aN => aN >= opts.range[0] && aN <= opts.range[1]);
+    }
+
+    arr.filter(aN => {
+        if (Number.isInteger(parseInt(aN))) {
+            md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.final.json`));
+
+            let obj = {
+                proximity: "on-chain",
+                media_type: "image/svg+xml",
+                src: md.files[0].src,
+
+            }
+
+            md.files.splice(0,1);
+            md.files.push(obj);
+
+            if (opts.test) {
+                inspect(md);
+            } else {
+                console.log(aN);
+                 fs.writeFileSync(dir + `/${aN}/artwork.chunked.final.json`, JSON.stringify(md));
+            }
+        }
+    });
+}
+
 /** ====================================================================================
  * Execution
  *
  * @since 1.0
  */
 
-updateArtworkMetadata(
+// ! Update artwork metadata
+// updateArtworkMetadata(
+//     'human',
+//     'normal',
+//     {
+//         test: true,
+//         range: [1, 1]
+//     }
+// )
+
+// ! Update artwork metadata property
+updateArtworkMetadataProperty(
     'human',
-    'normal', {
+    'normal',
+    {
         test: false,
-        range: [1, 1]
+        range: [1,1]
     }
 )
