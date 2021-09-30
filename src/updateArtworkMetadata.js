@@ -122,13 +122,13 @@ const updateArtworkMetadataProperty = (
 
     arr.filter(aN => {
         if (Number.isInteger(parseInt(aN))) {
-            md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.final.json`));
+            md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.array.final.json`));
 
             let obj = {
+                preview: `cdn.cryptopeeps.io/nft/${aN}.svg`,
                 proximity: "on-chain",
                 media_type: "image/svg+xml",
                 src: md.files[0].src,
-
             }
 
             md.files.splice(0, 1);
@@ -138,13 +138,11 @@ const updateArtworkMetadataProperty = (
                 inspect(md);
             } else {
                 console.log(aN);
-                fs.writeFileSync(dir + `/${aN}/artwork.chunked.final.json`, JSON.stringify(md));
+                fs.writeFileSync(dir + `/${aN}/artwork.chunked.array.final.json`, JSON.stringify(md));
             }
         }
     });
 }
-
-
 
 const createArtworkMetadata = (
     species,
@@ -207,21 +205,21 @@ const createArtworkMetadata = (
 // )
 
 // ! Update artwork metadata property
-// updateArtworkMetadataProperty(
-//     'human',
-//     'normal',
-//     {
-//         test: false,
-//         range: [1,1]
-//     }
-// )
-
-// ! New artwork meta
-createArtworkMetadata(
+updateArtworkMetadataProperty(
     'human',
-    'normal', {
-        title: "artwork.chunked.array.final.json",
+    'normal',
+    {
         test: false,
-        range: [1, 1]
+        range: [1,1]
     }
 )
+
+// ! New artwork meta
+// createArtworkMetadata(
+//     'human',
+//     'normal', {
+//         title: "artwork.chunked.array.final.json",
+//         test: false,
+//         range: [1, 1]
+//     }
+// );
