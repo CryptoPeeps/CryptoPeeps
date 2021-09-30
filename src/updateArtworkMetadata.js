@@ -124,15 +124,22 @@ const updateArtworkMetadataProperty = (
         if (Number.isInteger(parseInt(aN))) {
             md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.array.final.json`));
 
-            let obj = {
-                preview: `cdn.cryptopeeps.io/nft/${aN}.svg`,
-                proximity: "on-chain",
-                media_type: "image/svg+xml",
-                src: md.files[0].src,
-            }
+            md.about.links.homepage = "https://www.cryptopeeps.io";
+            md.about.links.github = "https://www.github.com/cryptopeeps";
+            md.about.links.reddit = "https://www.reddit.com/r/cryptopeeps";
+            md.about.links.artist = "https://www.benzega.com";
 
-            md.files.splice(0, 1);
-            md.files.push(obj);
+            md.files[0].preview = `https://cdn.cryptopeeps.io/nft/${aN}.svg`;
+
+            // let obj = {
+            //     preview: `https://cdn.cryptopeeps.io/nft/${aN}.svg`,
+            //     proximity: "on-chain",
+            //     media_type: "image/svg+xml",
+            //     src: md.files[0].src,
+            // }
+
+            // md.files.splice(0, 1);
+            // md.files.push(obj);
 
             if (opts.test) {
                 inspect(md);
