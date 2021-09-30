@@ -60,40 +60,40 @@ const updateArtworkMetadata = (
     arr.filter(aN => {
         if (Number.isInteger(parseInt(aN))) {
             md = {
-                old: JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.json`)),
+                old: JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.unchunked.v1.json`)),
             }
 
             let fileChunks = {};
             let chunks = getBytesizedChunks(md.old.artwork.file.src, 64, false);
-            chunks.filter((chunk, i) => fileChunks[i] = chunk);
+            chunks.filter((chunk, i) => fileChunks[i + 1] = chunk);
 
             md["new"] = {
-                name: md.old.name,
-                artist: "Benzega",
-                description: "One-of-a-kind pop art pixel peep living on the blockchain!",
-                attributes: md.old.artwork.attributes,
+                about: {
+                    name: md.old.name,
+                    artist: "Benzega",
+                    description: "One-of-a-kind pop art pixel peep living on the blockchain!",
+                    links: {
+                        homepage: "cryptopeeps.io",
+                        github: "github.com/cryptopeeps",
+                        reddit: "reddit.com/r/cryptopeeps",
+                        artist: "benzega.com"
+                    },
+                    properties: md.old.artwork.attributes
+                },
                 files: [{
-                    on_chain: true,
+                    proximity: "on-chain",
                     media_type: "image/svg+xml",
                     src: {
-                        chunks: fileChunks,
+                        chunks: fileChunks
                     }
                 }],
-                links: {
-                    homepage: "cryptopeeps.io",
-                    github: "github.com/cryptopeeps",
-                    reddit: "reddit.com/r/cryptopeeps",
-                    artist: "benzega.com"
-                }
             }
 
             if (opts.test) {
                 inspect(md["new"]);
-                console.log(`Total: ${Buffer.byteLength(JSON.stringify(md["new"]))}`);
-                console.log(`Description: ${Buffer.byteLength(md["new"].description)}`);
             } else {
                 console.log(aN);
-                fs.renameSync(dir + `/${aN}/artwork.json`, dir + `/${aN}/artwork.unchunked.v1.json`)
+                fs.renameSync(dir + `/${aN}/artwork.chunked.final.json`, dir + `/${aN}/artwork.chunked.v2.json`)
                 fs.writeFileSync(dir + `/${aN}/artwork.chunked.final.json`, JSON.stringify(md["new"]));
             }
         }
@@ -131,14 +131,61 @@ const updateArtworkMetadataProperty = (
 
             }
 
-            md.files.splice(0,1);
+            md.files.splice(0, 1);
             md.files.push(obj);
 
             if (opts.test) {
                 inspect(md);
             } else {
                 console.log(aN);
-                 fs.writeFileSync(dir + `/${aN}/artwork.chunked.final.json`, JSON.stringify(md));
+                fs.writeFileSync(dir + `/${aN}/artwork.chunked.final.json`, JSON.stringify(md));
+            }
+        }
+    });
+}
+
+
+
+const createArtworkMetadata = (
+    species,
+    variant,
+    opts = {
+        title: "artwork.array.chunked.final.json",
+        test: true,
+        range: [1, 1],
+    }
+) => {
+
+    const dir = __dirname + `/../collections/${species}/${variant}`;
+
+    let arr = fs.readdirSync(dir)
+        .filter(aN => Number.isInteger(parseInt(aN)))
+        .filter(aN => parseInt(aN))
+        .sort((a, b) => a - b);
+
+    if (opts.test) {
+        arr = arr.filter(aN => aN >= opts.range[0] && aN <= opts.range[1]);
+    }
+
+    arr.filter(aN => {
+        if (Number.isInteger(parseInt(aN))) {
+
+            let md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.final.json`));
+
+            let chunkArr = [];
+
+            for (const chunk in md.files[0].src.chunks) {
+                chunkArr.push(md.files[0].src.chunks[chunk]);
+            }
+
+            delete md.files[0].src.chunks;
+            md.files[0].src = chunkArr;
+
+            if (opts.test) {
+                inspect(md);
+            } else {
+                console.log(aN);
+                fs.writeFileSync(dir + `/${aN}/${opts.title}`, JSON.stringify(md));
             }
         }
     });
@@ -153,19 +200,28 @@ const updateArtworkMetadataProperty = (
 // ! Update artwork metadata
 // updateArtworkMetadata(
 //     'human',
-//     'normal',
-//     {
-//         test: true,
+//     'normal', {
+//         test: false,
 //         range: [1, 1]
 //     }
 // )
 
 // ! Update artwork metadata property
-updateArtworkMetadataProperty(
+// updateArtworkMetadataProperty(
+//     'human',
+//     'normal',
+//     {
+//         test: false,
+//         range: [1,1]
+//     }
+// )
+
+// ! New artwork meta
+createArtworkMetadata(
     'human',
-    'normal',
-    {
+    'normal', {
+        title: "artwork.chunked.array.final.json",
         test: false,
-        range: [1,1]
+        range: [1, 1]
     }
 )
