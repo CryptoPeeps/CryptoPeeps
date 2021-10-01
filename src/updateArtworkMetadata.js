@@ -175,22 +175,45 @@ const createArtworkMetadata = (
     arr.filter(aN => {
         if (Number.isInteger(parseInt(aN))) {
 
-            let md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.final.json`));
-
-            let chunkArr = [];
-
-            for (const chunk in md.files[0].src.chunks) {
-                chunkArr.push(md.files[0].src.chunks[chunk]);
+            let md = {
+                base: JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.final.json`))
             }
 
-            delete md.files[0].src.chunks;
-            md.files[0].src = chunkArr;
+            let svg = {
+                base: fs.readFileSync(dir + `/${aN}/artwork.svg`, `utf8`),
+                encoded: `data:image/svg+xml;base64,` + fs.readFileSync(__dirname + `/test/test.svg`, 'base64')
+            }
+
+            let chunkArr = getBytesizedChunks(svg.encoded, 64, false)
+
+            let json = {
+                name: `CryptoPeep #${aN}`,
+                artist: "Benzega",
+                description: "One-of-a-kind pop art pixel peep living on the blockchain!",
+                links: {
+                    homepage: "https://www.cryptopeeps.io",
+                    reddit: "https://www.reddit.com/r/cryptopeeps",
+                    github: "https://www.github.com/cryptopeeps",
+                },
+                properties: md.base.about.properties,
+                image: chunkArr
+            }
 
             if (opts.test) {
-                inspect(md);
+                let mdFinal = {
+                    "721": {
+                        "15b8520fae0359f40249c3c70ba967dbde925ae375573316d5b50c20": {
+                            "CryptoPeep9088": json
+                        }
+                    },
+                    version: "1.0"
+                }
+
+                inspect(json);
+                fs.writeFileSync(__dirname + `/test/final.json`, JSON.stringify(mdFinal));
             } else {
                 console.log(aN);
-                fs.writeFileSync(dir + `/${aN}/${opts.title}`, JSON.stringify(md));
+                fs.writeFileSync(dir + `/${aN}/${opts.title}`, JSON.stringify(json));
             }
         }
     });
@@ -212,21 +235,21 @@ const createArtworkMetadata = (
 // )
 
 // ! Update artwork metadata property
-updateArtworkMetadataProperty(
-    'human',
-    'normal',
-    {
-        test: false,
-        range: [1,1]
-    }
-)
+// updateArtworkMetadataProperty(
+//     'human',
+//     'normal',
+//     {
+//         test: false,
+//         range: [1,1]
+//     }
+// )
 
 // ! New artwork meta
-// createArtworkMetadata(
-//     'human',
-//     'normal', {
-//         title: "artwork.chunked.array.final.json",
-//         test: false,
-//         range: [1, 1]
-//     }
-// );
+createArtworkMetadata(
+    'human',
+    'normal', {
+        title: "artwork.final.json",
+        test: true,
+        range: [1, 1]
+    }
+);
