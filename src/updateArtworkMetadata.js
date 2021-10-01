@@ -59,42 +59,42 @@ const updateArtworkMetadata = (
 
     arr.filter(aN => {
         if (Number.isInteger(parseInt(aN))) {
-            md = {
-                old: JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.unchunked.v1.json`)),
-            }
+            let md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.metadata.json`));
 
-            let fileChunks = {};
-            let chunks = getBytesizedChunks(md.old.artwork.file.src, 64, false);
-            chunks.filter((chunk, i) => fileChunks[i + 1] = chunk);
+            // Create new properties object
+            let newProps = {};
 
-            md["new"] = {
-                about: {
-                    name: md.old.name,
-                    artist: "Benzega",
-                    description: "One-of-a-kind pop art pixel peep living on the blockchain!",
-                    links: {
-                        homepage: "cryptopeeps.io",
-                        github: "github.com/cryptopeeps",
-                        reddit: "reddit.com/r/cryptopeeps",
-                        artist: "benzega.com"
-                    },
-                    properties: md.old.artwork.attributes
-                },
-                files: [{
-                    proximity: "on-chain",
-                    media_type: "image/svg+xml",
-                    src: {
-                        chunks: fileChunks
-                    }
-                }],
-            }
+            Object.keys(md.Properties).map(key => {
+                let value = md.Properties[key];
+                let newValue = null;
+
+                if (Array.isArray(value) && value.length === 1) {
+                    newValue = value[0];
+                } else if (Array.isArray(value) && value.length > 1) {
+                    newValue = value.join(", ");
+                } else {
+                    newValue = value;
+                }
+
+                newProps[key] = newValue;
+            });
+
+            md.Properties = newProps;
 
             if (opts.test) {
-                inspect(md["new"]);
+                inspect(md);
+                fs.writeFileSync(__dirname + `/test/final.json`, JSON.stringify({
+                    "721": {
+                        "15b8520fae0359f40249c3c70ba967dbde925ae375573316d5b50c20": {
+                            "CryptoPeep1": md
+                        },
+                        "version": "1.0"
+                    }
+                }));
             } else {
                 console.log(aN);
-                fs.renameSync(dir + `/${aN}/artwork.chunked.final.json`, dir + `/${aN}/artwork.chunked.v2.json`)
-                fs.writeFileSync(dir + `/${aN}/artwork.chunked.final.json`, JSON.stringify(md["new"]));
+                fs.rmSync(dir + `/${aN}/artwork.metadata.json`);
+                fs.writeFileSync(dir + `/${aN}/artwork.metadata.json`, JSON.stringify(md));
             }
         }
     });
@@ -122,7 +122,7 @@ const updateArtworkMetadataProperty = (
 
     arr.filter(aN => {
         if (Number.isInteger(parseInt(aN))) {
-            md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.array.final.json`));
+            md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.metadata.json`));
 
             md.about.links.homepage = "https://www.cryptopeeps.io";
             md.about.links.github = "https://www.github.com/cryptopeeps";
@@ -291,7 +291,7 @@ const createFinalArtworkMetadata = (
         if (Number.isInteger(parseInt(aN))) {
 
             // Get old metadata
-            let md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.chunked.final.json`))
+            let md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.metadata.json`))
 
             // Define svg with both types of encoding
             let svg = {
@@ -301,7 +301,7 @@ const createFinalArtworkMetadata = (
 
             // Produce srcArr from encoded json
             let newSrc = getBytesizedChunks(svg.encoded, 64, false)
-            newSrc.splice(0,0,`data:image/svg+xml;base64,`);
+            newSrc.splice(0, 0, `data:image/svg+xml;base64,`);
 
             // Create new properties object
             let newProps = {};
@@ -313,7 +313,7 @@ const createFinalArtworkMetadata = (
                 if (Array.isArray(value) && value.length === 1) {
                     newValue = value[0];
                 } else {
-                    newValue = value;
+                    newValue = value.join(", ");
                 }
 
                 if (key === `facial_hair`) {
@@ -348,8 +348,12 @@ const createFinalArtworkMetadata = (
                 console.log(aN);
 
                 // Clean dir
-                fs.rmdirSync(dir + `/${aN}`, { recursive: true });
-                fs.mkdirSync(dir + `/${aN}`, { recursive: true });
+                fs.rmdirSync(dir + `/${aN}`, {
+                    recursive: true
+                });
+                fs.mkdirSync(dir + `/${aN}`, {
+                    recursive: true
+                });
 
                 // Write files
                 fs.writeFileSync(dir + `/${aN}/artwork.svg`, svg.base);
@@ -370,7 +374,7 @@ const createFinalArtworkMetadata = (
 //     'human',
 //     'normal', {
 //         test: false,
-//         range: [1, 1]
+//         range: [1492, 1492]
 //     }
 // )
 
@@ -399,7 +403,26 @@ const createFinalArtworkMetadata = (
 //     'human',
 //     'normal', {
 //         title: "artwork.metadata.json",
-//         test: false,
-//         range: [1, 1]
+//         test: true,
+//         range: [1492, 1492]
 //     }
 // );
+
+(() => {
+    const num = 10000;
+
+    let aMD = JSON.parse(fs.readFileSync(__dirname + `/../collections/human/normal/${num}/artwork.metadata.json`, 'utf8'));
+
+    let token = {
+        "721": {
+            "15b8520fae0359f40249c3c70ba967dbde925ae375573316d5b50c20": {
+                ["CryptoPeep" + `${num}`]: aMD
+            },
+            version: "1.0"
+        }
+    }
+
+    inspect(token);
+    fs.writeFileSync(__dirname + `/test/final.json`, JSON.stringify(token));
+
+})();
