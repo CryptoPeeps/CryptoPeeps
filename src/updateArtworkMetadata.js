@@ -388,16 +388,9 @@ const fixTypo = (
         if (Number.isInteger(parseInt(aN))) {
             let md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.metadata.json`));
 
-            if (md.Properties.Items === "Flag of Columbia") {
-                md.Properties.Items = "Flag of Colombia";
-            }
+            console.log(aN);
 
-            if (!opts.test) {
-                console.log('----------------');
-                console.log(aN);
-                fs.rmSync(dir + `/${aN}/artwork.metadata.json`);
-                fs.writeFileSync(dir + `/${aN}/artwork.metadata.json`, JSON.stringify(md));
-            }
+            fs.renameSync(dir + `/${aN}/artwork.metadata.json`, dir + `/${aN}/artwork.metadata.base64.json`)
         }
     });
 }
@@ -452,7 +445,7 @@ fixTypo(
     'human',
     'normal', {
         test: false,
-        range: [1, 2500]
+        range: [1, 10000]
     }
 );
 
