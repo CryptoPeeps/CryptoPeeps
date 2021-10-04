@@ -5,6 +5,8 @@ CryptoPeeps is an original pop art NFT collection powered by the Cardano blockch
 ## Community
 
 - [Online Store & Gallery](https://www.cryptopeeps.io)
-- [GitHub](https://www.github.com/cryptopeeps)
-- [Reddit](https://www.reddit.com/r/cryptopeeps)
 - [Discord](https://discord.gg/ZNXYuSEq7D)
+- [Twitter](https://www.twitter.com/CryptoPeepsHQ)
+- [Instagram](https://www.instagram.com/cryptopeepshq)
+- [Reddit](https://www.reddit.com/r/cryptopeeps)
+- [GitHub](https://www.github.com/cryptopeeps)
