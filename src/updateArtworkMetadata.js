@@ -363,6 +363,45 @@ const createFinalArtworkMetadata = (
     });
 }
 
+
+const fixTypo = (
+    species,
+    variant,
+    opts = {
+        test: true,
+        range: [1, 1],
+    }
+) => {
+
+    const dir = __dirname + `/../collections/${species}/${variant}`;
+
+    let arr = fs.readdirSync(dir)
+        .filter(aN => Number.isInteger(parseInt(aN)))
+        .filter(aN => parseInt(aN))
+        .sort((a, b) => a - b);
+
+    if (opts.test) {
+        arr = arr.filter(aN => aN >= opts.range[0] && aN <= opts.range[1]);
+    }
+
+    arr.filter(aN => {
+        if (Number.isInteger(parseInt(aN))) {
+            let md = JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.metadata.json`));
+
+            if (md.Properties.Items === "Flag of Columbia") {
+                md.Properties.Items = "Flag of Colombia";
+            }
+
+            if (!opts.test) {
+                console.log('----------------');
+                console.log(aN);
+                fs.rmSync(dir + `/${aN}/artwork.metadata.json`);
+                fs.writeFileSync(dir + `/${aN}/artwork.metadata.json`, JSON.stringify(md));
+            }
+        }
+    });
+}
+
 /** ====================================================================================
  * Execution
  *
@@ -408,21 +447,40 @@ const createFinalArtworkMetadata = (
 //     }
 // );
 
-(() => {
-    const num = 10000;
-
-    let aMD = JSON.parse(fs.readFileSync(__dirname + `/../collections/human/normal/${num}/artwork.metadata.json`, 'utf8'));
-
-    let token = {
-        "721": {
-            "15b8520fae0359f40249c3c70ba967dbde925ae375573316d5b50c20": {
-                ["CryptoPeep" + `${num}`]: aMD
-            },
-            version: "1.0"
-        }
+// ! Fix typo
+fixTypo(
+    'human',
+    'normal', {
+        test: false,
+        range: [1, 2500]
     }
+);
 
-    inspect(token);
-    fs.writeFileSync(__dirname + `/test/final.json`, JSON.stringify(token));
+// ! Create Final SVG encoded and rename other svg to base.64
+// createFinalArtworkMetadata(
+//     'human',
+//     'normal', {
+//         title: "artwork.metadata.json",
+//         test: true,
+//         range: [1492, 1492]
+//     }
+// );
 
-})();
+// (() => {
+//     const num = 10000;
+
+//     let aMD = JSON.parse(fs.readFileSync(__dirname + `/../collections/human/normal/${num}/artwork.metadata.json`, 'utf8'));
+
+//     let token = {
+//         "721": {
+//             "15b8520fae0359f40249c3c70ba967dbde925ae375573316d5b50c20": {
+//                 ["CryptoPeep" + `${num}`]: aMD
+//             },
+//             version: "1.0"
+//         }
+//     }
+
+//     inspect(token);
+//     fs.writeFileSync(__dirname + `/test/final.json`, JSON.stringify(token));
+
+// })();
