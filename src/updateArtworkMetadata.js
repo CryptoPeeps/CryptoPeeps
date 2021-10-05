@@ -396,13 +396,8 @@ const fixTypo = (
 }
 
 
-
-function encodeSVG(svgString) {
+const encodeSVG = (svgString) => {
     return svgString.replace('<svg', (~svgString.indexOf('xmlns') ? '<svg' : '<svg xmlns="http://www.w3.org/2000/svg"'))
-
-        //
-        //   Encode (may need a few extra replacements)
-        //
         .replace(/"/g, '\'')
         .replace(/%/g, '%25')
         .replace(/#/g, '%23')
@@ -410,23 +405,21 @@ function encodeSVG(svgString) {
         .replace(/}/g, '%7D')
         .replace(/</g, '%3C')
         .replace(/>/g, '%3E')
-
         .replace(/\s+/g, ' ')
-    //
-    //    The maybe list (add on documented fail)
-    //
-    //  .replace(/&/g, '%26')
-    //  .replace('|', '%7C')
-    //  .replace('[', '%5B')
-    //  .replace(']', '%5D')
-    //  .replace('^', '%5E')
-    //  .replace('`', '%60')
-    //  .replace(';', '%3B')
-    //  .replace('?', '%3F')
-    //  .replace(':', '%3A')
-    //  .replace('@', '%40')
-    //  .replace('=', '%3D')
-    ;
+
+    /* Maybe list
+    .replace(/&/g, '%26')
+    .replace('|', '%7C')
+    .replace('[', '%5B')
+    .replace(']', '%5D')
+    .replace('^', '%5E')
+    .replace('`', '%60')
+    .replace(';', '%3B')
+    .replace('?', '%3F')
+    .replace(':', '%3A')
+    .replace('@', '%40')
+    .replace('=', '%3D')
+    */
 }
 
 
@@ -461,7 +454,7 @@ const createUTF8Metadata = (
                 base64: fs.readFileSync(dir + `/${aN}/artwork.svg`, 'base64'),
             }
 
-            svg.utf8 = "data:image/svg+xml;utf8," + encodeSVG(svg.utf8.replace(`xmlns="http://www.w3.org/2000/svg"`, `xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`));
+            // svg.utf8 = "data:image/svg+xml;utf8," + encodeSVG(svg.utf8.replace(`xmlns="http://www.w3.org/2000/svg"`, `xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`));
 
             // Metadata
             let md = {
@@ -471,10 +464,11 @@ const createUTF8Metadata = (
             // SRC
             let src = {
                 // base: md.base.files[0].src.reduce((a,c) => a += c),
-                utf8: getBytesizedChunks(svg.utf8, 64, false),
+                utf8: getBytesizedChunks(encodeSVG(svg.utf8.replace(`xmlns="http://www.w3.org/2000/svg"`, `xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`)), 64, false),
                 base64: getBytesizedChunks(svg.base64, 64, false)
-
             }
+
+            src.utf8.splice(0, 0, "data:image/svg+xml;utf8,");
 
             md.final = md.base;
             delete md.final.files
@@ -482,17 +476,18 @@ const createUTF8Metadata = (
 
             if (opts.test) {
                 let json = {
-        "721": {
-            "5f19f28bf48e3c15b2454a0e3c14c8ba19f7ee399a978a9bc5242c46": {
-                "CryptoPeep9088": md.final
-            }
-        },
-        version: "1.0"
-    }
+                    "721": {
+                        "5f19f28bf48e3c15b2454a0e3c14c8ba19f7ee399a978a9bc5242c46": {
+                            "CryptoPeep9088": md.final
+                        }
+                    },
+                    version: "1.0"
+                }
                 fs.writeFileSync(__dirname + `/test/final.json`, JSON.stringify(json));
             } else {
                 console.log(aN);
-                fs.rmSync(dir + `/${aN}/undefined`);
+                // fs.rmSync(dir + `/${aN}/undefined`);
+                fs.rmSync(dir + `/${aN}/${opts.title}`);
                 fs.writeFileSync(dir + `/${aN}/${opts.title}`, JSON.stringify(md.final));
             }
         }
