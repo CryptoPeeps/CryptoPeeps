@@ -395,6 +395,110 @@ const fixTypo = (
     });
 }
 
+
+
+function encodeSVG(svgString) {
+    return svgString.replace('<svg', (~svgString.indexOf('xmlns') ? '<svg' : '<svg xmlns="http://www.w3.org/2000/svg"'))
+
+        //
+        //   Encode (may need a few extra replacements)
+        //
+        .replace(/"/g, '\'')
+        .replace(/%/g, '%25')
+        .replace(/#/g, '%23')
+        .replace(/{/g, '%7B')
+        .replace(/}/g, '%7D')
+        .replace(/</g, '%3C')
+        .replace(/>/g, '%3E')
+
+        .replace(/\s+/g, ' ')
+    //
+    //    The maybe list (add on documented fail)
+    //
+    //  .replace(/&/g, '%26')
+    //  .replace('|', '%7C')
+    //  .replace('[', '%5B')
+    //  .replace(']', '%5D')
+    //  .replace('^', '%5E')
+    //  .replace('`', '%60')
+    //  .replace(';', '%3B')
+    //  .replace('?', '%3F')
+    //  .replace(':', '%3A')
+    //  .replace('@', '%40')
+    //  .replace('=', '%3D')
+    ;
+}
+
+
+
+const createUTF8Metadata = (
+    species,
+    variant,
+    opts = {
+        title: "artwork.metadata.utf8.json",
+        test: true,
+        range: [1, 1],
+    }
+) => {
+
+    const dir = __dirname + `/../collections/${species}/${variant}`;
+
+    let arr = fs.readdirSync(dir)
+        .filter(aN => Number.isInteger(parseInt(aN)))
+        .filter(aN => parseInt(aN))
+        .sort((a, b) => a - b);
+
+    if (opts.test) {
+        arr = arr.filter(aN => aN >= opts.range[0] && aN <= opts.range[1]);
+    }
+
+    arr.filter(aN => {
+        if (Number.isInteger(parseInt(aN))) {
+
+            // SVG
+            let svg = {
+                utf8: fs.readFileSync(dir + `/${aN}/artwork.svg`, 'utf8'),
+                base64: fs.readFileSync(dir + `/${aN}/artwork.svg`, 'base64'),
+            }
+
+            svg.utf8 = "data:image/svg+xml;utf8," + encodeSVG(svg.utf8.replace(`xmlns="http://www.w3.org/2000/svg"`, `xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`));
+
+            // Metadata
+            let md = {
+                base: JSON.parse(fs.readFileSync(dir + `/${aN}/artwork.metadata.base64.json`, 'utf8')),
+            }
+
+            // SRC
+            let src = {
+                // base: md.base.files[0].src.reduce((a,c) => a += c),
+                utf8: getBytesizedChunks(svg.utf8, 64, false),
+                base64: getBytesizedChunks(svg.base64, 64, false)
+
+            }
+
+            md.final = md.base;
+            delete md.final.files
+            md.final.image = src.utf8;
+
+            if (opts.test) {
+                let json = {
+        "721": {
+            "5f19f28bf48e3c15b2454a0e3c14c8ba19f7ee399a978a9bc5242c46": {
+                "CryptoPeep9088": md.final
+            }
+        },
+        version: "1.0"
+    }
+                fs.writeFileSync(__dirname + `/test/final.json`, JSON.stringify(json));
+            } else {
+                console.log(aN);
+                fs.rmSync(dir + `/${aN}/undefined`);
+                fs.writeFileSync(dir + `/${aN}/${opts.title}`, JSON.stringify(md.final));
+            }
+        }
+    });
+}
+
 /** ====================================================================================
  * Execution
  *
@@ -441,11 +545,21 @@ const fixTypo = (
 // );
 
 // ! Fix typo
-fixTypo(
+// fixTypo(
+//     'human',
+//     'normal', {
+//         test: false,
+//         range: [1, 10000]
+//     }
+// );
+
+// ! Fix typo
+createUTF8Metadata(
     'human',
     'normal', {
         test: false,
-        range: [1, 10000]
+        range: [1, 1],
+        title: 'artwork.metadata.utf8.json'
     }
 );
 
